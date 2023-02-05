@@ -2,10 +2,70 @@ import Head from 'next/head'
 import Image from 'next/image'
 import { Inter } from '@next/font/google'
 import styles from '@/styles/Home.module.css'
+import { useState, useEffect } from 'react';
+import BaseInput from '@/components/BaseInput';
+import Button from '@/components/Button';
 
 const inter = Inter({ subsets: ['latin'] })
 
+// function List(props) {
+//   const list = props.list;
+//   return (
+//     <a href="https://nextjs.org/docs" className={styles.card}>
+//         <h3>{list.title} &rarr;</h3>
+//         <ul>
+//         {list.items && list.items.map((item,index) => (
+//             <li key={index}><p>{item}</p></li>
+//         ))}
+//         </ul>
+//     </a>
+//   );
+// }
+
 export default function Home() {
+  const [list, setList] = useState({title: '', items: []});
+  // const [lists, setLists] = useState([]);
+  const [shareLink, setShareLink] = useState('');
+
+//   useEffect(() => {
+//     fetch('http://localhost:3001/lists')
+//        .then((response) => response.json())
+//        .then((data) => {
+//           setLists(...lists, data.data);
+//        });
+//  }, []);
+
+ const listHandler = (e)=>{
+  setList({...list, title: e.target.value})
+}
+
+const createList = async () => {
+  await fetch('http://localhost:3001/lists', {
+  method: 'POST',
+  body: JSON.stringify({
+     title: list.title,
+  }),
+  headers: {
+     'Content-type': 'application/json; charset=UTF-8',
+  },
+  })
+  .then((response) => response.json())
+  .then((data) => {
+    const newList = {title: data.data.title, uuid: data.data.uuid};
+    setShareLink(`http://localhost:3000/lists/${newList.uuid}`);
+    // setLists([...lists, newList]);
+    setList({title: '', items: []});
+  })
+  .catch((err) => {
+     console.log(err.message);
+  });
+};
+
+const copy = async () => {
+  await navigator.clipboard.writeText(shareLink);
+  alert('Text copied');
+}
+
   return (
     <>
       <Head>
@@ -15,51 +75,39 @@ export default function Home() {
         <link rel="icon" href="/favicon.ico" />
       </Head>
       <main className={styles.main}>
-        <div className={styles.description}>
-          <p>
-            Get started by editing&nbsp;
-            <code className={styles.code}>src/pages/index.js</code>
-          </p>
-          <div>
-            <a
-              href="https://vercel.com?utm_source=create-next-app&utm_medium=default-template&utm_campaign=create-next-app"
-              target="_blank"
-              rel="noopener noreferrer"
-            >
-              By{' '}
-              <Image
-                src="/vercel.svg"
-                alt="Vercel Logo"
-                className={styles.vercelLogo}
-                width={100}
-                height={24}
-                priority
-              />
-            </a>
+        {/* <div className={styles.description}>
+          <p>zuro</p>
+        </div> */}
+
+        <div>
+          <div className="flex flex-col z-10">
+            <h1 className="text-3xl font-bold mb-2">
+              Add a title
+            </h1>
+
+            <div className='flex space-x-3 pb-8'>
+              <BaseInput value={list.title} required onChange={listHandler} />
+
+              <Button pill disabled={list.title == ''} onClick={createList}>
+                Create list
+              </Button>
+            </div>            
+
+
+            { shareLink != '' && 
+              <button className={styles.card} onClick={copy}>
+                <h2>Click to copy share link</h2>
+                <p className='text-sm'>{shareLink}</p>
+              </button>
+             }
           </div>
+
         </div>
 
-        <div className={styles.center}>
-          <Image
-            className={styles.logo}
-            src="/next.svg"
-            alt="Next.js Logo"
-            width={180}
-            height={37}
-            priority
-          />
-          <div className={styles.thirteen}>
-            <Image
-              src="/thirteen.svg"
-              alt="13"
-              width={40}
-              height={31}
-              priority
-            />
-          </div>
-        </div>
-
-        <div className={styles.grid}>
+        {/* <div className={styles.grid}>
+          {lists.length > 0 && lists.map((list, index) => (
+            <List list={list} key={index} className={styles.card}/>
+          ))}
           <a
             href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=default-template&utm_campaign=create-next-app"
             className={styles.card}
@@ -73,50 +121,7 @@ export default function Home() {
               Find in-depth information about Next.js features and&nbsp;API.
             </p>
           </a>
-
-          <a
-            href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=default-template&utm_campaign=create-next-app"
-            className={styles.card}
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <h2 className={inter.className}>
-              Learn <span>-&gt;</span>
-            </h2>
-            <p className={inter.className}>
-              Learn about Next.js in an interactive course with&nbsp;quizzes!
-            </p>
-          </a>
-
-          <a
-            href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=default-template&utm_campaign=create-next-app"
-            className={styles.card}
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <h2 className={inter.className}>
-              Templates <span>-&gt;</span>
-            </h2>
-            <p className={inter.className}>
-              Discover and deploy boilerplate example Next.js&nbsp;projects.
-            </p>
-          </a>
-
-          <a
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=default-template&utm_campaign=create-next-app"
-            className={styles.card}
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <h2 className={inter.className}>
-              Deploy <span>-&gt;</span>
-            </h2>
-            <p className={inter.className}>
-              Instantly deploy your Next.js site to a shareable URL
-              with&nbsp;Vercel.
-            </p>
-          </a>
-        </div>
+        </div> */}
       </main>
     </>
   )
