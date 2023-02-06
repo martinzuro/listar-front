@@ -10,20 +10,25 @@ export default function List() {
   const router = useRouter();
   const [currentList, setCurrentList] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState(null);
   const [item, setItem] = useState({ name: "" });
 
   // const fetcher = (url) => fetch(url).then((res) => res.json())
-  // const { data, error, isLoading } = useSWR(query.uuid ?`http://localhost:3001/lists/${query.uuid}` : null, fetcher)
+  // const { data, error, isLoading } = useSWR(query.uuid ? `${process.env.NEXT_PUBLIC_API_URL}/lists/${router.query.uuid}` : null, fetcher)
 
   useEffect(() => {
     if(!router.isReady) return;
     setIsLoading(true);
-    fetch(`http://localhost:3001/lists/${router.query.uuid}`)
+    fetch(`${process.env.NEXT_PUBLIC_API_URL}/lists/${router.query.uuid}`)
       .then((res) => res.json())
       .then((data) => {
-        dispatch({ type: 'SET_ITEMS', items: data.data.items });
-        setCurrentList(data.data);
-        setIsLoading(false);
+        if (data.error) {
+          setError(data.message)
+        } else {
+          dispatch({ type: 'SET_ITEMS', items: data.data.items });
+          setCurrentList(data.data);
+          setIsLoading(false);
+        }
       })
   }, [router.isReady, router.query.uuid])
 
@@ -45,7 +50,7 @@ export default function List() {
   };
 
   const addItem = async () => {
-    await fetch(`http://localhost:3001/lists/${currentList.uuid}/items`, {
+    await fetch(`${process.env.NEXT_PUBLIC_API_URL}/lists/${currentList.uuid}/items`, {
       method: 'POST',
       body: JSON.stringify({
         name: item.name,
@@ -66,7 +71,7 @@ export default function List() {
   };
 
   const deleteItem = async (id) => {
-    await fetch(`http://localhost:3001/lists/${currentList.uuid}/items/${id}`, {
+    await fetch(`${process.env.NEXT_PUBLIC_API_URL}/lists/${currentList.uuid}/items/${id}`, {
       method: 'DELETE',
       headers: {
         "Content-type": "application/json; charset=UTF-8",
@@ -82,6 +87,7 @@ export default function List() {
   };
 
   // if (error) return <div>Failed to load user { error.message }</div>
+  if (error) return <div>Error: { error }</div>
   if (isLoading) return <p>Loading...</p>
   if (!currentList) return <p>No list</p>
 

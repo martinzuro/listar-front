@@ -28,7 +28,7 @@ export default function Home() {
   const [shareLink, setShareLink] = useState('');
 
 //   useEffect(() => {
-//     fetch('http://localhost:3001/lists')
+//     fetch(`${process.env.NEXT_PUBLIC_API_URL}/lists`)
 //        .then((response) => response.json())
 //        .then((data) => {
 //           setLists(...lists, data.data);
@@ -40,7 +40,7 @@ export default function Home() {
 }
 
 const createList = async () => {
-  await fetch('http://localhost:3001/lists', {
+  await fetch(`${process.env.NEXT_PUBLIC_API_URL}/lists`, {
   method: 'POST',
   body: JSON.stringify({
      title: list.title,
@@ -52,7 +52,7 @@ const createList = async () => {
   .then((response) => response.json())
   .then((data) => {
     const newList = {title: data.data.title, uuid: data.data.uuid};
-    setShareLink(`http://localhost:3000/lists/${newList.uuid}`);
+    setShareLink(`${process.env.NEXT_PUBLIC_URL}/lists/${newList.uuid}`);
     // setLists([...lists, newList]);
     setList({title: '', items: []});
   })
