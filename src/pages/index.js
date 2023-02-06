@@ -79,30 +79,28 @@ const copy = async () => {
           <p>zuro</p>
         </div> */}
 
-        <div>
-          <div className="flex flex-col z-10">
-            <h1 className="text-3xl font-bold mb-2">
-              Add a title
-            </h1>
+        <div className="flex flex-col z-10 min-h-screen justify-center">
+          <h1 className="text-3xl font-bold mb-2">
+            Add a title
+          </h1>
 
-            <div className='flex space-x-3 pb-8'>
-              <BaseInput value={list.title} required onChange={listHandler} />
+          <div className='flex space-x-3 pb-8'>
+            <BaseInput value={list.title} required onChange={listHandler} />
 
-              <Button pill disabled={list.title == ''} onClick={createList}>
-                Create list
-              </Button>
-            </div>            
+            <Button pill disabled={list.title == ''} onClick={createList}>
+              Create list
+            </Button>
+          </div>            
 
 
-            { shareLink != '' && 
-              <button className={styles.card} onClick={copy}>
-                <h2>Click to copy share link</h2>
-                <p className='text-sm'>{shareLink}</p>
-              </button>
-             }
-          </div>
-
+          { shareLink != '' && 
+            <button className={styles.card} onClick={copy}>
+              <h2>Click to copy share link</h2>
+              <p className='text-sm'>{shareLink}</p>
+            </button>
+            }
         </div>
+
 
         {/* <div className={styles.grid}>
           {lists.length > 0 && lists.map((list, index) => (
