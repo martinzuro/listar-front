@@ -5,13 +5,18 @@ import BaseInput from "@/components/BaseInput";
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faXmark } from '@fortawesome/free-solid-svg-icons';
 // import useSWR from 'swr';
+import { useChannel } from "@ably-labs/react-hooks";
 
-export default function List() {
+
+export default function List({params}) {
+  const {uuid} = params;
   const router = useRouter();
   const [currentList, setCurrentList] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
   const [item, setItem] = useState({ name: "" });
+  const [messages, updateMessages] = useState([]);
+
 
   // const fetcher = (url) => fetch(url).then((res) => res.json())
   // const { data, error, isLoading } = useSWR(query.uuid ? `${process.env.NEXT_PUBLIC_API_URL}/lists/${router.query.uuid}` : null, fetcher)
@@ -25,25 +30,40 @@ export default function List() {
         if (data.error) {
           setError(data.message)
         } else {
-          dispatch({ type: 'SET_ITEMS', items: data.data.items });
+          // dispatch({ type: 'SET_ITEMS', items: data.data.items });
+          updateMessages(data.data.items);
           setCurrentList(data.data);
           setIsLoading(false);
         }
       })
   }, [router.isReady, router.query.uuid])
 
-  const [itemsFromList, dispatch] = useReducer((state, action) => {
-    switch (action.type) {
-      case 'ADD_ITEM':
-        return [...state, action.item];
-      case 'REMOVE_ITEM':
-        return state.filter((x) => x.id !== action.id);
-      case 'SET_ITEMS':
-        return action.items;
+  const [channel] = useChannel(`channel-${uuid}`, (message) => {
+    const item = message.data.item;
+    switch (message.name) {
+      case 'add-item':
+        updateMessages((prev) => [...prev, item]);
+        break;
+      case 'remove-item':
+        updateMessages((prev) => prev.filter((x) => x.id !== item.id));
+        break;
       default:
-        return state;
+        break;
     }
-  }, currentList ? currentList.items : []);
+  });
+
+  // const [itemsFromList, dispatch] = useReducer((state, action) => {
+  //   switch (action.type) {
+  //     case 'ADD_ITEM':
+  //       return [...state, action.item];
+  //     case 'REMOVE_ITEM':
+  //       return state.filter((x) => x.id !== action.id);
+  //     case 'SET_ITEMS':
+  //       return action.items;
+  //     default:
+  //       return state;
+  //   }
+  // }, currentList ? currentList.items : []);
 
   const itemHandler = (data) => {
     setItem({ ...item, name: data.target.value });
@@ -62,8 +82,9 @@ export default function List() {
       .then((response) => response.json())
       .then((data) => {
         const newItem = {name: data.data.name, id: data.data.id};
-        dispatch({ type: 'ADD_ITEM', item: newItem });
+        // dispatch({ type: 'ADD_ITEM', item: newItem });
         setItem({ name: '' });
+        // channel.publish('add-item', {item: newItem});
       })
       .catch((err) => {
         console.log(err.message);
@@ -79,7 +100,8 @@ export default function List() {
     })
       .then((response) => response.json())
       .then((data) => {
-        dispatch({ type: 'REMOVE_ITEM', id });
+        // dispatch({ type: 'REMOVE_ITEM', id });
+        updateMessages((prev) => prev.filter((x) => x.id !== id));
       })
       .catch((err) => {
         console.log(err.message);
@@ -99,8 +121,16 @@ export default function List() {
       <h3 className="text-2xl font-bold py-2">{currentList.title}</h3>
 
       <div className="">
-        {
+        {/* {
           itemsFromList.length > 0 && itemsFromList.map((item, index) => 
+            <div className="flex justify-between py-1" key={index}>
+              <p>{index+1}. {item.name}</p>
+              <div onClick={() => deleteItem(item.id)}><FontAwesomeIcon icon={faXmark} /></div>
+            </div>
+          )
+        } */}
+        {
+          messages.length > 0 && messages.map((item, index) => 
             <div className="flex justify-between py-1" key={index}>
               <p>{index+1}. {item.name}</p>
               <div onClick={() => deleteItem(item.id)}><FontAwesomeIcon icon={faXmark} /></div>
@@ -117,4 +147,10 @@ export default function List() {
 
     </div>
   );
+}
+
+export function getServerSideProps(context) {
+  return {
+    props: {params: context.params}
+  };
 }
