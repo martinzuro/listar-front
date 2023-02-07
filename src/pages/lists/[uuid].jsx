@@ -38,18 +38,12 @@ export default function List({params}) {
       })
   }, [router.isReady, router.query.uuid])
 
-  const [channel] = useChannel(`channel-${uuid}`, (message) => {
-    const item = message.data.item;
-    switch (message.name) {
-      case 'add-item':
-        updateMessages((prev) => [...prev, item]);
-        break;
-      case 'remove-item':
-        updateMessages((prev) => prev.filter((x) => x.id !== item.id));
-        break;
-      default:
-        break;
-    }
+  useChannel(`channel-${uuid}`, 'add-item', (message) => {
+    updateMessages((prev) => [...prev, message.data.item]);
+  });
+  
+  useChannel(`channel-${uuid}`, 'remove-item', (message) => {
+    updateMessages((prev) => prev.filter((x) => x.id !== message.data.item.id));
   });
 
   // const [itemsFromList, dispatch] = useReducer((state, action) => {
@@ -101,7 +95,7 @@ export default function List({params}) {
       .then((response) => response.json())
       .then((data) => {
         // dispatch({ type: 'REMOVE_ITEM', id });
-        updateMessages((prev) => prev.filter((x) => x.id !== id));
+        // updateMessages((prev) => prev.filter((x) => x.id !== id));
       })
       .catch((err) => {
         console.log(err.message);
